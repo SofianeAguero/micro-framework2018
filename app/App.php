@@ -5,7 +5,7 @@ use Core\Database\MysqlDatabase;
 
 class App{
 
-    public $title = "Test MiniFramework";
+    public $title = "MiniFramework";
     private $db_instance;
     private static $_instance;
 
@@ -16,6 +16,9 @@ class App{
         return self::$_instance;
     }
 
+    /**
+     * Fais appel à l'autoloader
+     */
     public static function load(){
         session_start();
         require ROOT . '/app/Autoloader.php';
@@ -24,11 +27,18 @@ class App{
         Core\Autoloader::register();
     }
 
+    /**
+     * @param $name
+     * @return mixed : renvoie le nom de la table
+     */
     public function getTable($name){
         $class_name = '\\App\\Table\\' . ucfirst($name) . 'Table';
         return new $class_name($this->getDb());
     }
 
+    /**
+     * @return MysqlDatabase : Retourne une instance unique de la BDD
+     */
     public function getDb(){
         $config = Config::getInstance(ROOT . '/config/config.php');
         if(is_null($this->db_instance)){
@@ -37,4 +47,16 @@ class App{
         return $this->db_instance;
     }
 
+    public static function getSlugTitle($string, $delimiter = '-')
+    {
+        $oldLocale = setlocale(LC_ALL, '0');
+        setlocale(LC_ALL, 'en_US.UTF-8');
+        $clean = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        $clean = preg_replace("/[^a-zA-Z0-9\/_|+ -]/", '', $clean);
+        $clean = strtolower($clean);
+        $clean = preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
+        $clean = trim($clean, $delimiter);
+        setlocale(LC_ALL, $oldLocale);
+        return $clean;
+    }
 }
